@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Numerical & Calculus Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #080c12;
+      --surface:   #0d1521;
+      --surface2:  #111d2e;
+      --border:    rgba(0,210,200,0.13);
+      --accent:    #00d2c8;
+      --accent2:   #fbbf24;
+      --accent3:   #a78bfa;
+      --text:      #cde4f4;
+      --text-dim:  #4a7a9b;
+      --text-muted:#2a4a62;
+      --success:   #10b981;
+      --danger:    #f87171;
+      --glow:      0 0 20px rgba(0,210,200,0.25);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% -20%, rgba(0,210,200,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 90% 80%, rgba(167,139,250,0.04) 0%, transparent 70%);
+    }
+
+    /* GRID BG */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(0,210,200,0.025) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0,210,200,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
+    }
+
+    .container {
+      position: relative; z-index: 1;
+      max-width: 1200px; margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      text-align: center;
+      padding: 2.5rem 0 2rem;
+      position: relative;
+    }
+    .header-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem; letter-spacing: 0.25em;
+      color: var(--accent); text-transform: uppercase;
+      margin-bottom: 1rem;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .header-eyebrow::before, .header-eyebrow::after {
+      content: ''; width: 40px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent));
+    }
+    .header-eyebrow::after { transform: scaleX(-1); }
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800; line-height: 1.1;
+      background: linear-gradient(135deg, #fff 0%, var(--accent) 60%, var(--accent3) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.75rem;
+    }
+    .header-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem; color: var(--text-dim);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── TABS ── */
+    .tab-bar {
+      display: flex; flex-wrap: wrap; gap: 0.4rem;
+      justify-content: center;
+      margin: 2rem 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 0.5rem;
+    }
+    .tab-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 0.6rem 1.1rem;
+      border: 1px solid transparent;
+      border-radius: 0.6rem;
+      background: transparent; color: var(--text-dim);
+      cursor: pointer; transition: all 0.22s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text); background: var(--surface2); }
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(0,210,200,0.18), rgba(0,210,200,0.06));
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: var(--glow);
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      padding: 2rem;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.4);
+      transition: border-color 0.3s;
+    }
+    .card:hover { border-color: rgba(0,210,200,0.22); }
+    .card-title {
+      font-size: 1.1rem; font-weight: 700; color: var(--accent);
+      display: flex; align-items: center; gap: 0.6rem;
+      margin-bottom: 1.5rem;
+      font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em;
+    }
+    .card-title .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent); box-shadow: var(--glow);
+    }
+
+    /* ── LABELS & INPUTS ── */
+    label {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 0.4rem;
+    }
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid rgba(0,210,200,0.15);
+      border-radius: 0.65rem;
+      padding: 0.65rem 0.9rem;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      appearance: none;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,210,200,0.12);
+    }
+    select option { background: #1a2a3a; }
+
+    .field { margin-bottom: 1rem; }
+    .field-row { display: grid; gap: 0.75rem; }
+    .cols-2 { grid-template-columns: 1fr 1fr; }
+    .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      border: none; border-radius: 0.75rem;
+      padding: 0.75rem 1.25rem;
+      cursor: pointer; transition: all 0.22s; white-space: nowrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #007a75);
+      color: #fff; box-shadow: 0 4px 16px rgba(0,210,200,0.2);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,210,200,0.35); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-ghost {
+      background: var(--surface2); border: 1px solid var(--border); color: var(--text-dim);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-warn {
+      background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3); color: var(--accent2);
+    }
+    .btn-warn:hover { background: rgba(251,191,36,0.2); }
+    .btn-purple {
+      background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.3); color: var(--accent3);
+    }
+    .btn-purple:hover { background: rgba(167,139,250,0.22); }
+    .btn-full { width: 100%; }
+    .btn-sm { padding: 0.5rem 0.9rem; font-size: 0.7rem; }
+    .btn-group { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+    /* ── RESULT BOX ── */
+    .result-box {
+      background: rgba(0,210,200,0.04);
+      border: 1px solid rgba(0,210,200,0.2);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .result-box::before {
+      content: ''; position: absolute;
+      top: -60px; left: 50%; transform: translateX(-50%);
+      width: 200px; height: 120px;
+      background: radial-gradient(ellipse, rgba(0,210,200,0.1), transparent);
+      pointer-events: none;
+    }
+    .result-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 0.15em;
+      margin-bottom: 0.5rem;
+    }
+    .result-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 600; color: #fff;
+      line-height: 1;
+    }
+    .result-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem; color: var(--accent);
+      margin-top: 0.6rem;
+    }
+    .result-yellow .result-value { color: var(--accent2); }
+    .result-yellow { border-color: rgba(251,191,36,0.25); background: rgba(251,191,36,0.04); }
+    .result-yellow::before { background: radial-gradient(ellipse, rgba(251,191,36,0.08), transparent); }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem; font-weight: 600; letter-spacing: 0.05em;
+      padding: 0.2rem 0.5rem; border-radius: 0.4rem;
+      background: rgba(0,210,200,0.12); color: var(--accent);
+      border: 1px solid rgba(0,210,200,0.2);
+    }
+    .badge-warn { background: rgba(251,191,36,0.12); color: var(--accent2); border-color: rgba(251,191,36,0.2); }
+    .badge-danger { background: rgba(248,113,113,0.12); color: var(--danger); border-color: rgba(248,113,113,0.2); }
+
+    /* ── SAMPLE PILLS ── */
+    .sample-pills { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .sample-pill {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;
+      padding: 0.3rem 0.75rem; border-radius: 2rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text-dim); cursor: pointer; transition: all 0.2s;
+    }
+    .sample-pill:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── TABLE ── */
+    .table-wrap { overflow-x: auto; border-radius: 0.75rem; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; }
+    thead th {
+      background: var(--bg); color: var(--text-dim);
+      padding: 0.7rem 0.9rem; text-align: center;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      font-weight: 600; font-size: 0.65rem;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr { transition: background 0.15s; }
+    tbody tr:hover { background: rgba(0,210,200,0.04); }
+    tbody td { padding: 0.55rem 0.9rem; text-align: center; color: var(--text); border-bottom: 1px solid rgba(0,210,200,0.05); }
+    tbody td.accent { color: var(--accent); font-weight: 600; }
+    tbody td.accent-yellow { color: var(--accent2); font-weight: 600; }
+
+    /* ── DIVIDER ── */
+    .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+
+    /* ── ALERT ── */
+    .alert { border-radius: 0.75rem; padding: 0.8rem 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; margin-bottom: 1rem; }
+    .alert-danger { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.25); color: var(--danger); }
+    .alert-info { background: rgba(0,210,200,0.06); border: 1px solid rgba(0,210,200,0.2); color: var(--accent); }
+
+    /* ── PANEL HIDE ── */
+    .tool-panel { display: none; animation: fadeIn 0.3s ease; }
+    .tool-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── TWO-COL LAYOUT ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem; align-items: start; }
+    @media (max-width: 820px) { .two-col { grid-template-columns: 1fr; } .cols-3 { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 520px) { .cols-2, .cols-3 { grid-template-columns: 1fr; } }
+
+    /* ── MATRIX GRID ── */
+    .matrix-wrapper { overflow-x: auto; }
+    .matrix-grid { display: inline-grid; gap: 6px; padding: 1rem; background: var(--bg); border-radius: 0.75rem; border: 1px solid var(--border); }
+    .matrix-grid input { width: 60px; height: 46px; text-align: center; padding: 0.4rem; font-size: 0.8rem; }
+
+    /* ── VECTOR RESULT ── */
+    .vec-results { display: grid; gap: 0.75rem; margin-top: 1rem; }
+    .vec-result-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 0.65rem; padding: 0.7rem 1rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+    }
+    .vec-result-item .label { color: var(--text-dim); font-size: 0.7rem; }
+    .vec-result-item .value { color: var(--accent); font-weight: 600; font-size: 1rem; }
+
+    /* ── PROGRESS / SKELETON ── */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 3rem 1rem; gap: 0.75rem; color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; text-align: center;
+    }
+    .empty-icon { font-size: 2.5rem; opacity: 0.4; }
+
+    /* ── INTEGRATION STEPS ── */
+    .int-formula-box {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 0.75rem;
+      padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+      color: var(--text-dim); margin-top: 0.75rem;
+    }
+    .int-formula-box .highlight { color: var(--accent2); }
+
+    /* ── CROSS PRODUCT RESULT ── */
+    .vec-cross { font-family: 'JetBrains Mono', monospace; font-size: 1rem; color: var(--accent3); font-weight: 600; }
+
+    /* ── COPY BTN ── */
+    .copy-btn {
+      position: absolute; top: 0.75rem; right: 0.75rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+      padding: 0.3rem 0.65rem; border-radius: 0.4rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text-dim); cursor: pointer; transition: all 0.2s;
+    }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center; padding: 2rem 0 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem; color: var(--text-muted);
+      letter-spacing: 0.1em; line-height: 2;
+    }
+    .footer span { color: var(--text-dim); }
+
+    /* ── MATRIX RESULT ── */
+    .matrix-result-panel {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 0.75rem;
+      padding: 1.25rem; font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem; overflow-x: auto; min-height: 80px;
+      position: relative;
+    }
+    .matrix-result-panel pre { color: var(--text); line-height: 1.8; }
+
+    /* ── HIDDEN ── */
+    .hidden { display: none !important; }
+
+    /* SVG chart */
+    .chart-svg { width: 100%; overflow: visible; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-eyebrow">SBTE Bihar · Diploma CSE · 2nd Semester</div>
+    <h1>Numerical &amp; Calculus Calculator</h1>
+    <p class="header-sub">Applied Mathematics – B &nbsp;|&nbsp; Root Finding · Matrix · Integration · Differentiation · Vectors</p>
+  </header>
+
+  <!-- TABS -->
+  <div class="tab-bar" role="tablist">
+    <button class="tab-btn active" onclick="switchTool(0)" id="tab-0">⊕ Root Finding</button>
+    <button class="tab-btn" onclick="switchTool(1)" id="tab-1">⊞ Matrix</button>
+    <button class="tab-btn" onclick="switchTool(2)" id="tab-2">∫ Integration</button>
+    <button class="tab-btn" onclick="switchTool(3)" id="tab-3">∂ Differentiation</button>
+    <button class="tab-btn" onclick="switchTool(4)" id="tab-4">↗ Vectors</button>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!--           ROOT FINDING PANEL          -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="tool-root" class="tool-panel active">
+    <div class="two-col">
+
+      <!-- Inputs -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Configuration</div>
+
+        <div class="field">
+          <label>Numerical Method</label>
+          <select id="method" onchange="onMethodChange()">
+            <option value="bisection">Bisection Method</option>
+            <option value="falsi">Regula-Falsi (False Position)</option>
+            <option value="secant">Secant Method</option>
+            <option value="newton">Newton-Raphson Method</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Function f(x)</label>
+          <input id="fx" type="text" value="x**3 - 2*x - 5" placeholder="e.g. x**3 - 2*x - 5">
+        </div>
+
+        <div id="df_div" class="field hidden">
+          <label>Derivative f′(x)</label>
+          <input id="dfx" type="text" value="3*x**2 - 2" placeholder="e.g. 3*x**2 - 2">
+        </div>
+
+        <div class="field field-row cols-2">
+          <div>
+            <label id="a_label">Lower Bound a</label>
+            <input id="a" type="number" value="2" step="any">
+          </div>
+          <div id="b_div">
+            <label id="b_label">Upper Bound b</label>
+            <input id="b" type="number" value="3" step="any">
+          </div>
+        </div>
+
+        <div class="field field-row cols-2">
+          <div>
+            <label>Tolerance ε</label>
+            <input id="tol" type="number" value="0.0001" step="any">
+          </div>
+          <div>
+            <label>Max Iterations</label>
+            <input id="maxiter" type="number" value="30">
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="field">
+          <label>Quick Samples</label>
+          <div class="sample-pills">
+            <span class="sample-pill" onclick="loadSample(1)">x³−2x−5</span>
+            <span class="sample-pill" onclick="loadSample(2)">x²−3 = 0</span>
+            <span class="sample-pill" onclick="loadSample(3)">cos(x)−x</span>
+            <span class="sample-pill" onclick="loadSample(4)">eˣ−3x</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="btn-group">
+          <button class="btn btn-primary" style="flex:1" onclick="solveRoot()">▶ Find Root</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearRoot()">↺ Reset</button>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Results</div>
+        <div id="root-error" class="alert alert-danger hidden"></div>
+
+        <div id="root-final" class="hidden">
+          <div class="result-box" style="margin-bottom:1.25rem; position:relative">
+            <button class="copy-btn" onclick="copyText('root-value-text')">copy</button>
+            <div class="result-label">Approximate Root</div>
+            <div class="result-value" id="root-value-text">—</div>
+            <div class="result-sub" id="root-iters"></div>
+          </div>
+
+          <div class="field-row cols-3" style="margin-bottom:1.25rem; gap:0.5rem">
+            <div class="result-box" style="padding:0.9rem">
+              <div class="result-label" style="font-size:0.58rem">f(root)</div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:1rem; color:var(--accent2)" id="root-fval">—</div>
+            </div>
+            <div class="result-box" style="padding:0.9rem">
+              <div class="result-label" style="font-size:0.58rem">Iterations</div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:1rem; color:var(--accent3)" id="root-iter-count">—</div>
+            </div>
+            <div class="result-box" style="padding:0.9rem">
+              <div class="result-label" style="font-size:0.58rem">Method</div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--text)" id="root-method-label">—</div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table id="root-table">
+              <thead><tr id="root-thead"></tr></thead>
+              <tbody id="root-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="root-empty" class="empty-state">
+          <div class="empty-icon">∅</div>
+          <div>Configure parameters and click <strong>Find Root</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!--           MATRIX PANEL                -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="tool-matrix" class="tool-panel">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Matrix Calculator</div>
+
+      <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.25rem">
+        <div style="display:flex; align-items:center; gap:0.5rem">
+          <label style="margin:0; white-space:nowrap">Matrix Size n×n</label>
+          <input id="matrix-size" type="number" min="1" max="6" value="3" style="width:70px">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="createMatrixInput()">Create</button>
+        <button class="btn btn-ghost btn-sm" onclick="fillMatrixRandom()">Random Fill</button>
+        <button class="btn btn-ghost btn-sm" onclick="fillMatrixIdentity()">Identity</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearMatrix()">Clear</button>
+      </div>
+
+      <div class="matrix-wrapper">
+        <div id="matrix-container" class="matrix-grid" style="grid-template-columns: repeat(3,1fr)"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="btn-group" style="margin-bottom:0.75rem">
+        <button class="btn btn-primary btn-sm" onclick="matOp('det')">Determinant |A|</button>
+        <button class="btn btn-primary btn-sm" onclick="matOp('trace')">Trace tr(A)</button>
+        <button class="btn btn-primary btn-sm" onclick="matOp('transpose')">Transpose Aᵀ</button>
+        <button class="btn btn-primary btn-sm" onclick="matOp('square')">A²</button>
+        <button class="btn btn-primary btn-sm" onclick="matOp('cube')">A³</button>
+        <button class="btn btn-warn btn-sm" onclick="matOp('inverse')">A⁻¹ Inverse</button>
+        <button class="btn btn-purple btn-sm" onclick="matOp('power')">Aⁿ Power</button>
+      </div>
+
+      <div id="power-row" class="field hidden" style="max-width:200px">
+        <label>Enter Power n</label>
+        <input id="custom-power" type="number" min="1" value="4">
+      </div>
+
+      <div id="mat-error" class="alert alert-danger hidden" style="margin-top:0.75rem"></div>
+      <div id="matrix-result" class="matrix-result-panel" style="margin-top:0.75rem; min-height:100px">
+        <div class="empty-state"><div class="empty-icon">⊞</div><div>Select an operation above</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!--         INTEGRATION PANEL             -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="tool-integration" class="tool-panel">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Numerical Integration</div>
+
+        <div class="field">
+          <label>Method</label>
+          <select id="int-method">
+            <option value="trapezoidal">Trapezoidal Rule</option>
+            <option value="simpson13">Simpson's 1/3 Rule</option>
+            <option value="simpson38">Simpson's 3/8 Rule</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>f(x)</label>
+          <input id="int-fx" type="text" value="x**2" placeholder="e.g. x**2">
+        </div>
+        <div class="field field-row cols-3">
+          <div><label>Lower a</label><input id="int-a" type="number" value="0" step="any"></div>
+          <div><label>Upper b</label><input id="int-b" type="number" value="2" step="any"></div>
+          <div><label>Intervals n</label><input id="int-n" type="number" value="4" min="2"></div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="sample-pills" style="margin-bottom:1rem">
+          <span class="sample-pill" onclick="intSample(1)">x²</span>
+          <span class="sample-pill" onclick="intSample(2)">sin(x)</span>
+          <span class="sample-pill" onclick="intSample(3)">eˣ</span>
+          <span class="sample-pill" onclick="intSample(4)">1/(1+x²)</span>
+        </div>
+        <div id="int-error" class="alert alert-danger hidden"></div>
+        <button class="btn btn-primary btn-full" onclick="calcIntegration()">∫ Calculate Area</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Result</div>
+        <div id="int-empty" class="empty-state"><div class="empty-icon">∫</div><div>Enter parameters and calculate</div></div>
+        <div id="int-result-area" class="hidden">
+          <div class="result-box result-yellow" style="position:relative; margin-bottom:1.25rem">
+            <button class="copy-btn" onclick="copyText('int-area-val')">copy</button>
+            <div class="result-label">Approximate Area ∫f(x)dx</div>
+            <div class="result-value" id="int-area-val">—</div>
+            <div class="result-sub" id="int-sub"></div>
+          </div>
+
+          <div id="int-formula-box" class="int-formula-box hidden"></div>
+
+          <div style="margin-top:1rem">
+            <div style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem">Intermediate Values</div>
+            <div class="table-wrap">
+              <table id="int-table">
+                <thead><tr><th>i</th><th>xᵢ</th><th>f(xᵢ)</th><th>Weight</th><th>Contribution</th></tr></thead>
+                <tbody id="int-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!--       DIFFERENTIATION PANEL           -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="tool-diff" class="tool-panel">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Numerical Differentiation</div>
+
+        <div class="field">
+          <label>f(x)</label>
+          <input id="diff-fx" type="text" value="x**3" placeholder="e.g. x**3">
+        </div>
+        <div class="field field-row cols-3">
+          <div><label>Point x</label><input id="diff-x" type="number" value="2" step="any"></div>
+          <div><label>Step h</label><input id="diff-h" type="number" value="0.001" step="any"></div>
+          <div>
+            <label>Method</label>
+            <select id="diff-method">
+              <option value="central">Central</option>
+              <option value="forward">Forward</option>
+              <option value="backward">Backward</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="sample-pills" style="margin-bottom:1rem">
+          <span class="sample-pill" onclick="diffSample(1)">x³ at x=2</span>
+          <span class="sample-pill" onclick="diffSample(2)">sin(x) at π/4</span>
+          <span class="sample-pill" onclick="diffSample(3)">eˣ at x=1</span>
+        </div>
+        <div id="diff-error" class="alert alert-danger hidden"></div>
+        <button class="btn btn-primary btn-full" onclick="calcDiff()">∂ Compute Derivative</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>Derivative Result</div>
+        <div id="diff-empty" class="empty-state"><div class="empty-icon">∂</div><div>Enter a function and compute</div></div>
+        <div id="diff-result-area" class="hidden">
+          <div class="result-box" style="position:relative; margin-bottom:1.25rem">
+            <button class="copy-btn" onclick="copyText('diff-val')">copy</button>
+            <div class="result-label">f′(x) ≈</div>
+            <div class="result-value" id="diff-val">—</div>
+            <div class="result-sub" id="diff-sub"></div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5rem; margin-bottom:1rem">
+            <div class="result-box" style="padding:0.9rem">
+              <div class="result-label" style="font-size:0.58rem">f(x−h)</div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:0.9rem; color:var(--text)" id="diff-fxmh">—</div>
+            </div>
+            <div class="result-box" style="padding:0.9rem">
+              <div class="result-label" style="font-size:0.58rem">f(x)</div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:0.9rem; color:var(--text)" id="diff-fx-val">—</div>
+            </div>
+            <div class="result-box" style="padding:0.9rem">
+              <div class="result-label" style="font-size:0.58rem">f(x+h)</div>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:0.9rem; color:var(--text)" id="diff-fxph">—</div>
+            </div>
+          </div>
+
+          <div id="diff-formula-box" class="int-formula-box"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!--           VECTOR PANEL                -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="tool-vector" class="tool-panel">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Vector Operations</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem 2rem; align-items:start">
+
+        <!-- Vector A -->
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.12em; color:var(--accent); margin-bottom:0.75rem">
+            Vector <strong>A</strong> = (Ax î + Ay ĵ + Az k̂)
+          </div>
+          <div class="field-row cols-3">
+            <div><label>Ax</label><input id="vec-ax" type="number" value="3" step="any"></div>
+            <div><label>Ay</label><input id="vec-ay" type="number" value="4" step="any"></div>
+            <div><label>Az</label><input id="vec-az" type="number" value="0" step="any"></div>
+          </div>
+        </div>
+
+        <!-- Vector B -->
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.12em; color:var(--accent3); margin-bottom:0.75rem">
+            Vector <strong>B</strong> = (Bx î + By ĵ + Bz k̂)
+          </div>
+          <div class="field-row cols-3">
+            <div><label>Bx</label><input id="vec-bx" type="number" value="1" step="any"></div>
+            <div><label>By</label><input id="vec-by" type="number" value="2" step="any"></div>
+            <div><label>Bz</label><input id="vec-bz" type="number" value="5" step="any"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="btn-group" style="margin-bottom:1rem">
+        <button class="btn btn-primary btn-sm" onclick="vecOp('magnitude')">|A| Magnitude</button>
+        <button class="btn btn-ghost btn-sm" onclick="vecOp('magnitudeB')">|B| Magnitude</button>
+        <button class="btn btn-ghost btn-sm" onclick="vecOp('dot')">A·B Dot Product</button>
+        <button class="btn btn-warn btn-sm" onclick="vecOp('cross')">A×B Cross Product</button>
+        <button class="btn btn-purple btn-sm" onclick="vecOp('angle')">∠ Angle</button>
+        <button class="btn btn-ghost btn-sm" onclick="vecOp('unit')">Â Unit Vector</button>
+        <button class="btn btn-primary btn-sm" onclick="vecOp('all')">All Operations</button>
+      </div>
+
+      <div id="vec-error" class="alert alert-danger hidden"></div>
+      <div id="vec-results" class="vec-results">
+        <div class="empty-state"><div class="empty-icon">↗</div><div>Select an operation to compute</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>CREATED &amp; HOSTED BY — <span>VIKASH KUMAR THAKUR (2025CSE-27)</span></p>
+    <p>DESIGN &amp; DEVELOPED BY — <span>KESHAV_KR (2025CSE-01)</span></p>
+  </footer>
+
+</div><!-- /container -->
+
+<script>
+// ══════════════════════════════════════════════
+//  UTILITIES
+// ══════════════════════════════════════════════
+function ev(expr, x) {
+  try {
+    const code = expr.replace(/\^/g, '**');
+    return new Function('x','Math',`with(Math){return (${code})+0;}`)(x, Math);
+  } catch { return NaN; }
+}
+
+function fmt(n, d = 7) {
+  if (typeof n !== 'number' || isNaN(n)) return 'NaN';
+  if (!isFinite(n)) return n > 0 ? '+∞' : '−∞';
+  return parseFloat(n.toFixed(d)).toString();
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (msg) { el.textContent = '⚠ ' + msg; el.classList.remove('hidden'); }
+  else { el.classList.add('hidden'); }
+}
+
+function hideError(id) { showError(id, null); }
+
+function copyText(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).catch(() => {});
+}
+
+function show(id)  { document.getElementById(id)?.classList.remove('hidden'); }
+function hide(id)  { document.getElementById(id)?.classList.add('hidden'); }
+
+// ══════════════════════════════════════════════
+//  TAB SWITCHING
+// ══════════════════════════════════════════════
+const toolIds = ['tool-root','tool-matrix','tool-integration','tool-diff','tool-vector'];
+function switchTool(n) {
+  toolIds.forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById(toolIds[n]).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+n).classList.add('active');
+  // Init matrix on first visit
+  if (n === 1 && document.getElementById('matrix-container').childElementCount === 0) {
+    createMatrixInput();
+  }
+}
+
+// ══════════════════════════════════════════════
+//  ROOT FINDING
+// ══════════════════════════════════════════════
+function onMethodChange() {
+  const m = document.getElementById('method').value;
+  document.getElementById('df_div').classList.toggle('hidden', m !== 'newton');
+  document.getElementById('b_div').classList.toggle('hidden', m === 'newton');
+  document.getElementById('a_label').textContent = m === 'newton' ? 'Initial Guess x₀' : (m === 'secant' ? 'x₀ (first)' : 'Lower Bound a');
+  document.getElementById('b_label').textContent = m === 'secant' ? 'x₁ (second)' : 'Upper Bound b';
+}
+
+function solveRoot() {
+  hideError('root-error');
+  const method  = document.getElementById('method').value;
+  const fxStr   = document.getElementById('fx').value.trim();
+  const dfxStr  = document.getElementById('dfx').value.trim();
+  let   a       = parseFloat(document.getElementById('a').value);
+  let   b       = parseFloat(document.getElementById('b').value);
+  const tol     = parseFloat(document.getElementById('tol').value)    || 1e-7;
+  const maxIter = parseInt  (document.getElementById('maxiter').value) || 50;
+
+  if (!fxStr) return showError('root-error','Please enter f(x).');
+  if (isNaN(a)) return showError('root-error','Enter a valid value for a / x₀.');
+
+  let steps = [], root = NaN, converged = false, iterCount = 0;
+
+  if (method === 'bisection' || method === 'falsi') {
+    if (isNaN(b)) return showError('root-error','Enter a valid b.');
+    let fa = ev(fxStr, a), fb = ev(fxStr, b);
+    if (isNaN(fa) || isNaN(fb)) return showError('root-error','f(x) returned NaN at endpoints.');
+    if (fa * fb >= 0) return showError('root-error','f(a)·f(b) ≥ 0. No sign change — root may not exist in [a, b].');
+
+    for (let i = 0; i < maxIter; i++) {
+      let c = method === 'bisection' ? (a + b) / 2 : (a * fb - b * fa) / (fb - fa);
+      let fc = ev(fxStr, c);
+      iterCount++;
+      steps.push({ iter:i+1, a:fmt(a,6), b:fmt(b,6), c:fmt(c,6), fa:fmt(fa,6), fb:fmt(fb,6), fc:fmt(fc,6) });
+      if (isNaN(fc)) { showError('root-error','f(c) evaluated to NaN.'); break; }
+      if (Math.abs(fc) < tol || Math.abs(b - a) < tol) { root = c; converged = true; break; }
+      if (fa * fc < 0) { b = c; fb = fc; } else { a = c; fa = fc; }
+    }
+    if (!converged && !isNaN(ev(fxStr,(parseFloat(document.getElementById('a').value)+b)/2))) {
+      root = steps[steps.length-1] ? parseFloat(steps[steps.length-1].c) : NaN;
+    }
+
+  } else if (method === 'secant') {
+    if (isNaN(b)) return showError('root-error','Enter a valid x₁.');
+    let x0 = a, x1 = b;
+    for (let i = 0; i < maxIter; i++) {
+      let fx0 = ev(fxStr, x0), fx1 = ev(fxStr, x1);
+      if (Math.abs(fx1 - fx0) < 1e-14) { showError('root-error','Division by near-zero in Secant.'); break; }
+      let x2 = x1 - fx1 * (x1 - x0) / (fx1 - fx0);
+      iterCount++;
+      steps.push({ iter:i+1, x0:fmt(x0,6), x1:fmt(x1,6), fx0:fmt(fx0,6), fx1:fmt(fx1,6), x2:fmt(x2,6) });
+      if (Math.abs(x2 - x1) < tol || Math.abs(ev(fxStr, x2)) < tol) { root = x2; converged = true; break; }
+      x0 = x1; x1 = x2;
+    }
+    if (!converged && steps.length) root = parseFloat(steps[steps.length-1].x2);
+
+  } else if (method === 'newton') {
+    if (!dfxStr) return showError('root-error','Please enter f′(x) for Newton-Raphson.');
+    let x = a;
+    for (let i = 0; i < maxIter; i++) {
+      let fv = ev(fxStr, x), dv = ev(dfxStr, x);
+      if (isNaN(fv) || isNaN(dv)) { showError('root-error','f(x) or f′(x) returned NaN.'); break; }
+      if (Math.abs(dv) < 1e-14) { showError('root-error','f′(x) ≈ 0. Newton-Raphson failed.'); break; }
+      let x1 = x - fv / dv;
+      iterCount++;
+      steps.push({ iter:i+1, x:fmt(x,6), fx:fmt(fv,6), dfx:fmt(dv,6), x1:fmt(x1,6), err:fmt(Math.abs(x1-x),8) });
+      if (Math.abs(x1 - x) < tol || Math.abs(fv) < tol) { root = x1; converged = true; break; }
+      x = x1;
+    }
+    if (!converged && steps.length) root = parseFloat(steps[steps.length-1].x1);
+  }
+
+  // Render results
+  hide('root-empty');
+  show('root-final');
+
+  document.getElementById('root-value-text').textContent = isNaN(root) ? 'Did not converge' : fmt(root, 8);
+  document.getElementById('root-iters').textContent      = converged ? `✓ Converged in ${iterCount} iterations` : `⚠ Max iterations (${iterCount}) reached`;
+  document.getElementById('root-fval').textContent       = isNaN(root) ? '—' : fmt(ev(fxStr, root), 6);
+  document.getElementById('root-iter-count').textContent = iterCount;
+  const labels = { bisection:'Bisection', falsi:'Regula-Falsi', secant:'Secant', newton:'Newton-Raphson' };
+  document.getElementById('root-method-label').textContent = labels[method] || method;
+
+  // Table
+  const thead = document.getElementById('root-thead');
+  const tbody = document.getElementById('root-tbody');
+  thead.innerHTML = ''; tbody.innerHTML = '';
+
+  if (method === 'newton') {
+    thead.innerHTML = `<th>Iter</th><th>xₙ</th><th>f(xₙ)</th><th>f′(xₙ)</th><th>xₙ₊₁</th><th>|error|</th>`;
+    steps.forEach(s => {
+      tbody.insertAdjacentHTML('beforeend',
+        `<tr><td>${s.iter}</td><td>${s.x}</td><td>${s.fx}</td><td>${s.dfx}</td><td class="accent">${s.x1}</td><td class="accent-yellow">${s.err}</td></tr>`);
+    });
+  } else if (method === 'secant') {
+    thead.innerHTML = `<th>Iter</th><th>x₀</th><th>x₁</th><th>f(x₀)</th><th>f(x₁)</th><th>x₂ (new)</th>`;
+    steps.forEach(s => {
+      tbody.insertAdjacentHTML('beforeend',
+        `<tr><td>${s.iter}</td><td>${s.x0}</td><td>${s.x1}</td><td>${s.fx0}</td><td>${s.fx1}</td><td class="accent">${s.x2}</td></tr>`);
+    });
+  } else {
+    thead.innerHTML = `<th>Iter</th><th>a</th><th>b</th><th>c (root)</th><th>f(a)</th><th>f(b)</th><th>f(c)</th>`;
+    steps.forEach(s => {
+      tbody.insertAdjacentHTML('beforeend',
+        `<tr><td>${s.iter}</td><td>${s.a}</td><td>${s.b}</td><td class="accent">${s.c}</td><td>${s.fa}</td><td>${s.fb}</td><td class="accent-yellow">${s.fc}</td></tr>`);
+    });
+  }
+}
+
+function clearRoot() {
+  document.getElementById('fx').value      = 'x**3 - 2*x - 5';
+  document.getElementById('dfx').value     = '3*x**2 - 2';
+  document.getElementById('a').value       = '2';
+  document.getElementById('b').value       = '3';
+  document.getElementById('tol').value     = '0.0001';
+  document.getElementById('maxiter').value = '30';
+  hide('root-final'); show('root-empty'); hideError('root-error');
+}
+
+function loadSample(n) {
+  const m = document.getElementById('method').value;
+  if (n === 1) {
+    document.getElementById('fx').value  = 'x**3 - 2*x - 5';
+    document.getElementById('dfx').value = '3*x**2 - 2';
+    document.getElementById('a').value   = '2';
+    document.getElementById('b').value   = '3';
+  } else if (n === 2) {
+    document.getElementById('fx').value  = 'x**2 - 3';
+    document.getElementById('dfx').value = '2*x';
+    document.getElementById('a').value   = '1';
+    document.getElementById('b').value   = '2';
+  } else if (n === 3) {
+    document.getElementById('fx').value  = 'Math.cos(x) - x';
+    document.getElementById('dfx').value = '-Math.sin(x) - 1';
+    document.getElementById('a').value   = '0';
+    document.getElementById('b').value   = '2';
+  } else if (n === 4) {
+    document.getElementById('fx').value  = 'Math.exp(x) - 3*x';
+    document.getElementById('dfx').value = 'Math.exp(x) - 3';
+    document.getElementById('a').value   = '0';
+    document.getElementById('b').value   = '2';
+  }
+  solveRoot();
+}
+
+// ══════════════════════════════════════════════
+//  MATRIX
+// ══════════════════════════════════════════════
+let matInputs = [];
+function createMatrixInput() {
+  const sz = Math.max(1, Math.min(6, parseInt(document.getElementById('matrix-size').value) || 3));
+  document.getElementById('matrix-size').value = sz;
+  const cont = document.getElementById('matrix-container');
+  cont.innerHTML = '';
+  cont.style.gridTemplateColumns = `repeat(${sz}, 1fr)`;
+  matInputs = [];
+  for (let i = 0; i < sz * sz; i++) {
+    const inp = document.createElement('input');
+    inp.type  = 'number'; inp.step = 'any'; inp.value = '0';
+    inp.className = '';
+    cont.appendChild(inp);
+    matInputs.push(inp);
+  }
+  document.getElementById('matrix-result').innerHTML = '<div class="empty-state"><div class="empty-icon">⊞</div><div>Select an operation above</div></div>';
+  hideError('mat-error');
+}
+
+function fillMatrixRandom() {
+  matInputs.forEach(inp => { inp.value = (Math.floor(Math.random() * 19) - 9).toString(); });
+}
+
+function fillMatrixIdentity() {
+  const n = Math.round(Math.sqrt(matInputs.length));
+  matInputs.forEach((inp,i) => { inp.value = (Math.floor(i/n) === i%n) ? '1' : '0'; });
+}
+
+function clearMatrix() { matInputs.forEach(inp => { inp.value = '0'; }); }
+
+function getMatrix() {
+  const n = Math.round(Math.sqrt(matInputs.length));
+  return Array.from({length:n}, (_,i) =>
+    Array.from({length:n}, (_,j) => parseFloat(matInputs[i*n+j].value) || 0));
+}
+
+function det(mat) {
+  const n = mat.length;
+  if (n === 1) return mat[0][0];
+  if (n === 2) return mat[0][0]*mat[1][1] - mat[0][1]*mat[1][0];
+  let s = 0, sg = 1;
+  for (let j = 0; j < n; j++) {
+    const sub = mat.slice(1).map(row => row.filter((_,idx) => idx !== j));
+    s += sg * mat[0][j] * det(sub);
+    sg = -sg;
+  }
+  return s;
+}
+
+function matMul(A, B) {
+  const n = A.length;
+  return Array.from({length:n}, (_,i) =>
+    Array.from({length:n}, (_,j) =>
+      A[i].reduce((sum,_,k) => sum + A[i][k]*B[k][j], 0)));
+}
+
+function matPow(mat, p) {
+  if (p === 0) return Array.from({length:mat.length}, (_,i) => Array.from({length:mat.length}, (_,j) => i===j?1:0));
+  if (p === 1) return mat.map(r => [...r]);
+  let res = mat.map(r => [...r]);
+  for (let i = 1; i < p; i++) res = matMul(res, mat);
+  return res;
+}
+
+function matTranspose(mat) {
+  return mat[0].map((_,j) => mat.map(row => row[j]));
+}
+
+function matInverse(mat) {
+  const n = mat.length;
+  const d = det(mat);
+  if (Math.abs(d) < 1e-12) return null; // singular
+
+  // Gauss-Jordan
+  const aug = mat.map((row,i) => [...row, ...Array.from({length:n},(_,j) => i===j?1:0)]);
+  for (let col = 0; col < n; col++) {
+    // Find pivot
+    let maxRow = col;
+    for (let r = col+1; r < n; r++)
+      if (Math.abs(aug[r][col]) > Math.abs(aug[maxRow][col])) maxRow = r;
+    [aug[col], aug[maxRow]] = [aug[maxRow], aug[col]];
+    if (Math.abs(aug[col][col]) < 1e-14) return null;
+    const piv = aug[col][col];
+    for (let j = 0; j < 2*n; j++) aug[col][j] /= piv;
+    for (let r = 0; r < n; r++) {
+      if (r === col) continue;
+      const f = aug[r][col];
+      for (let j = 0; j < 2*n; j++) aug[r][j] -= f * aug[col][j];
+    }
+  }
+  return aug.map(row => row.slice(n));
+}
+
+function fmtMat(mat) {
+  const n = mat.length;
+  const maxW = mat.flat().reduce((mx,v) => Math.max(mx, fmt(v,4).length), 0);
+  return mat.map(row => '│ ' + row.map(v => fmt(v,4).padStart(maxW+1)).join('  ') + '  │').join('\n');
+}
+
+function matOp(op) {
+  hideError('mat-error');
+  if (matInputs.length === 0) { createMatrixInput(); }
+  const mat = getMatrix();
+  const resDiv = document.getElementById('matrix-result');
+  const n = mat.length;
+
+  if (op === 'power') {
+    document.getElementById('power-row').classList.toggle('hidden', false);
+    const pw = parseInt(document.getElementById('custom-power').value) || 2;
+    const r = matPow(mat, pw);
+    resDiv.innerHTML = `<div style="color:var(--accent);font-size:0.8rem;margin-bottom:0.5rem">A<sup>${pw}</sup></div><pre>${fmtMat(r)}</pre>`;
+    return;
+  }
+  document.getElementById('power-row').classList.add('hidden');
+
+  if (op === 'det') {
+    const d = det(mat);
+    const singular = Math.abs(d) < 1e-10;
+    resDiv.innerHTML = `<div style="font-size:1.1rem;margin-bottom:0.5rem">det(A) = <span style="color:var(--accent);font-size:1.5rem;font-weight:700">${fmt(d,6)}</span></div>`
+      + (singular ? `<div class="badge badge-warn">Matrix is singular (det ≈ 0)</div>` : `<div class="badge">Non-singular matrix</div>`);
+    return;
+  }
+
+  if (op === 'trace') {
+    const tr = mat.reduce((s,row,i) => s + row[i], 0);
+    resDiv.innerHTML = `<div>tr(A) = <span style="color:var(--accent);font-size:1.5rem;font-weight:700">${fmt(tr,6)}</span></div>`;
+    return;
+  }
+
+  if (op === 'transpose') {
+    const T = matTranspose(mat);
+    resDiv.innerHTML = `<div style="color:var(--accent3);font-size:0.8rem;margin-bottom:0.5rem">Aᵀ (Transpose)</div><pre>${fmtMat(T)}</pre>`;
+    return;
+  }
+
+  if (op === 'inverse') {
+    const inv = matInverse(mat);
+    if (!inv) { showError('mat-error','Matrix is singular — inverse does not exist (det ≈ 0).'); resDiv.innerHTML = ''; return; }
+    resDiv.innerHTML = `<div style="color:var(--accent2);font-size:0.8rem;margin-bottom:0.5rem">A⁻¹ (Inverse)</div><pre>${fmtMat(inv)}</pre>`;
+    return;
+  }
+
+  const pow = op === 'square' ? 2 : 3;
+  const r = matPow(mat, pow);
+  resDiv.innerHTML = `<div style="color:var(--accent);font-size:0.8rem;margin-bottom:0.5rem">A<sup>${pow}</sup></div><pre>${fmtMat(r)}</pre>`;
+}
+
+// ══════════════════════════════════════════════
+//  INTEGRATION
+// ══════════════════════════════════════════════
+function intSample(n) {
+  const s = [{fx:'x**2',a:'0',b:'2',n:'4'},{fx:'Math.sin(x)',a:'0',b:'3.14159',n:'6'},{fx:'Math.exp(x)',a:'0',b:'1',n:'4'},{fx:'1/(1+x**2)',a:'0',b:'1',n:'8'}][n-1];
+  if (!s) return;
+  document.getElementById('int-fx').value = s.fx;
+  document.getElementById('int-a').value  = s.a;
+  document.getElementById('int-b').value  = s.b;
+  document.getElementById('int-n').value  = s.n;
+  calcIntegration();
+}
+
+function calcIntegration() {
+  hideError('int-error');
+  const method = document.getElementById('int-method').value;
+  const fxStr  = document.getElementById('int-fx').value.trim();
+  const a      = parseFloat(document.getElementById('int-a').value);
+  const b      = parseFloat(document.getElementById('int-b').value);
+  let n        = parseInt(document.getElementById('int-n').value);
+
+  if (!fxStr) return showError('int-error','Enter f(x).');
+  if (isNaN(a) || isNaN(b)) return showError('int-error','Enter valid limits.');
+  if (a >= b) return showError('int-error','Lower limit must be less than upper limit.');
+  if (n < 2) return showError('int-error','Need at least 2 intervals.');
+
+  // Fix n for rules
+  if (method === 'simpson13' && n % 2 !== 0) { n++; document.getElementById('int-n').value = n; }
+  if (method === 'simpson38' && n % 3 !== 0) { n = n + (3 - n % 3); document.getElementById('int-n').value = n; }
+
+  const h = (b - a) / n;
+  const xs = Array.from({length: n+1}, (_, i) => a + i * h);
+  const ys = xs.map(x => ev(fxStr, x));
+
+  if (ys.some(v => isNaN(v))) return showError('int-error','f(x) returned NaN for one or more x values.');
+
+  let area = 0;
+  const weights = Array(n+1).fill(0);
+
+  if (method === 'trapezoidal') {
+    weights[0] = 1; weights[n] = 1;
+    for (let i = 1; i < n; i++) weights[i] = 2;
+    area = (h / 2) * weights.reduce((s, w, i) => s + w * ys[i], 0);
+  } else if (method === 'simpson13') {
+    weights[0] = 1; weights[n] = 1;
+    for (let i = 1; i < n; i++) weights[i] = i % 2 === 0 ? 2 : 4;
+    area = (h / 3) * weights.reduce((s, w, i) => s + w * ys[i], 0);
+  } else { // simpson38
+    weights[0] = 1; weights[n] = 1;
+    for (let i = 1; i < n; i++) weights[i] = i % 3 === 0 ? 2 : 3;
+    area = (3 * h / 8) * weights.reduce((s, w, i) => s + w * ys[i], 0);
+  }
+
+  // Show results
+  show('int-result-area'); hide('int-empty');
+  document.getElementById('int-area-val').textContent = fmt(area, 8);
+  const labels = {trapezoidal:'Trapezoidal Rule', simpson13:"Simpson's 1/3 Rule", simpson38:"Simpson's 3/8 Rule"};
+  document.getElementById('int-sub').textContent = `${labels[method]} · ${n} intervals · h = ${fmt(h,5)}`;
+
+  // Formula box
+  const fb = document.getElementById('int-formula-box');
+  fb.classList.remove('hidden');
+  if (method === 'trapezoidal') {
+    fb.innerHTML = `Formula: I ≈ (h/2)[f(x₀) + 2f(x₁) + 2f(x₂) + ... + 2f(xₙ₋₁) + f(xₙ)] &nbsp;|&nbsp; h = ${fmt(h,5)}`;
+  } else if (method === 'simpson13') {
+    fb.innerHTML = `Formula: I ≈ (h/3)[f(x₀) + 4f(x₁) + 2f(x₂) + 4f(x₃) + ... + f(xₙ)] &nbsp;|&nbsp; h = ${fmt(h,5)}`;
+  } else {
+    fb.innerHTML = `Formula: I ≈ (3h/8)[f(x₀) + 3f(x₁) + 3f(x₂) + 2f(x₃) + ... + f(xₙ)] &nbsp;|&nbsp; h = ${fmt(h,5)}`;
+  }
+
+  // Table (show up to 20 rows)
+  const tbody = document.getElementById('int-tbody');
+  tbody.innerHTML = '';
+  const maxRows = Math.min(xs.length, 21);
+  for (let i = 0; i < maxRows; i++) {
+    const contrib = weights[i] * ys[i];
+    tbody.insertAdjacentHTML('beforeend',
+      `<tr><td>${i}</td><td>${fmt(xs[i],5)}</td><td>${fmt(ys[i],6)}</td><td class="accent">${weights[i]}</td><td class="accent-yellow">${fmt(contrib,6)}</td></tr>`);
+  }
+  if (xs.length > 21) {
+    tbody.insertAdjacentHTML('beforeend', `<tr><td colspan="5" style="color:var(--text-dim);text-align:center">... ${xs.length - 21} more rows hidden ...</td></tr>`);
+  }
+}
+
+// ══════════════════════════════════════════════
+//  DIFFERENTIATION
+// ══════════════════════════════════════════════
+function diffSample(n) {
+  const s = [{fx:'x**3',x:'2',h:'0.001'},{fx:'Math.sin(x)',x:(Math.PI/4).toString(),h:'0.001'},{fx:'Math.exp(x)',x:'1',h:'0.001'}][n-1];
+  if (!s) return;
+  document.getElementById('diff-fx').value = s.fx;
+  document.getElementById('diff-x').value  = s.x;
+  document.getElementById('diff-h').value  = s.h;
+  calcDiff();
+}
+
+function calcDiff() {
+  hideError('diff-error');
+  const fxStr  = document.getElementById('diff-fx').value.trim();
+  const x      = parseFloat(document.getElementById('diff-x').value);
+  const h      = parseFloat(document.getElementById('diff-h').value);
+  const method = document.getElementById('diff-method').value;
+
+  if (!fxStr) return showError('diff-error','Enter f(x).');
+  if (isNaN(x)) return showError('diff-error','Enter a valid x.');
+  if (isNaN(h) || h <= 0) return showError('diff-error','Step h must be > 0.');
+
+  const fxmh = ev(fxStr, x - h);
+  const fxv  = ev(fxStr, x);
+  const fxph = ev(fxStr, x + h);
+
+  let val;
+  if (method === 'central')  val = (fxph - fxmh) / (2 * h);
+  else if (method === 'forward')  val = (fxph - fxv) / h;
+  else                             val = (fxv  - fxmh) / h;
+
+  if (isNaN(val)) return showError('diff-error','Result is NaN. Check your function or parameters.');
+
+  show('diff-result-area'); hide('diff-empty');
+  document.getElementById('diff-val').textContent = fmt(val, 8);
+  const mlabel = {central:'Central Difference [O(h²)]', forward:'Forward Difference [O(h)]', backward:'Backward Difference [O(h)]'};
+  document.getElementById('diff-sub').textContent = `${mlabel[method]} · x = ${fmt(x,4)} · h = ${fmt(h,5)}`;
+
+  document.getElementById('diff-fxmh').textContent = fmt(fxmh, 6);
+  document.getElementById('diff-fx-val').textContent = fmt(fxv, 6);
+  document.getElementById('diff-fxph').textContent = fmt(fxph, 6);
+
+  const fb = document.getElementById('diff-formula-box');
+  if (method === 'central')
+    fb.innerHTML = `f′(x) ≈ [f(x+h) − f(x−h)] / 2h = [${fmt(fxph,5)} − ${fmt(fxmh,5)}] / ${fmt(2*h,5)} = <span class="highlight">${fmt(val,6)}</span>`;
+  else if (method === 'forward')
+    fb.innerHTML = `f′(x) ≈ [f(x+h) − f(x)] / h = [${fmt(fxph,5)} − ${fmt(fxv,5)}] / ${fmt(h,5)} = <span class="highlight">${fmt(val,6)}</span>`;
+  else
+    fb.innerHTML = `f′(x) ≈ [f(x) − f(x−h)] / h = [${fmt(fxv,5)} − ${fmt(fxmh,5)}] / ${fmt(h,5)} = <span class="highlight">${fmt(val,6)}</span>`;
+}
+
+// ══════════════════════════════════════════════
+//  VECTORS
+// ══════════════════════════════════════════════
+function getVec(prefix) {
+  return {
+    x: parseFloat(document.getElementById('vec-'+prefix+'x').value) || 0,
+    y: parseFloat(document.getElementById('vec-'+prefix+'y').value) || 0,
+    z: parseFloat(document.getElementById('vec-'+prefix+'z').value) || 0,
+  };
+}
+
+function vecItem(label, value, colorClass) {
+  return `<div class="vec-result-item">
+    <span class="label">${label}</span>
+    <span class="value" style="color:${colorClass||'var(--accent)'}">${value}</span>
+  </div>`;
+}
+
+function vecOp(op) {
+  hideError('vec-error');
+  const A = getVec('a'), B = getVec('b');
+  const magA = Math.sqrt(A.x**2 + A.y**2 + A.z**2);
+  const magB = Math.sqrt(B.x**2 + B.y**2 + B.z**2);
+  const dot  = A.x*B.x + A.y*B.y + A.z*B.z;
+  const cross = { x: A.y*B.z - A.z*B.y, y: A.z*B.x - A.x*B.z, z: A.x*B.y - A.y*B.x };
+  const magCross = Math.sqrt(cross.x**2 + cross.y**2 + cross.z**2);
+  const angleRad = (magA > 0 && magB > 0) ? Math.acos(Math.min(1,Math.max(-1, dot / (magA * magB)))) : NaN;
+  const angleDeg = angleRad * 180 / Math.PI;
+
+  const res = document.getElementById('vec-results');
+  let html = '';
+
+  if (op === 'magnitude' || op === 'all') {
+    html += vecItem('|A| = √(Ax²+Ay²+Az²)', fmt(magA,6), 'var(--accent)');
+  }
+  if (op === 'magnitudeB' || op === 'all') {
+    html += vecItem('|B| = √(Bx²+By²+Bz²)', fmt(magB,6), 'var(--accent)');
+  }
+  if (op === 'dot' || op === 'all') {
+    html += vecItem('A·B = AxBx + AyBy + AzBz', fmt(dot,6), 'var(--accent2)');
+  }
+  if (op === 'cross' || op === 'all') {
+    html += vecItem('A×B vector', `(${fmt(cross.x,4)}î, ${fmt(cross.y,4)}ĵ, ${fmt(cross.z,4)}k̂)`, 'var(--accent3)');
+    html += vecItem('|A×B| magnitude', fmt(magCross,6), 'var(--accent3)');
+  }
+  if (op === 'angle' || op === 'all') {
+    if (isNaN(angleRad)) { showError('vec-error','Cannot compute angle — one vector has zero magnitude.'); }
+    else {
+      html += vecItem('Angle θ (radians)', fmt(angleRad,6), 'var(--accent)');
+      html += vecItem('Angle θ (degrees)', fmt(angleDeg,4) + '°', 'var(--accent2)');
+    }
+  }
+  if (op === 'unit' || op === 'all') {
+    if (magA < 1e-14) { showError('vec-error','|A| = 0 — unit vector undefined.'); }
+    else {
+      const ua = { x: A.x/magA, y: A.y/magA, z: A.z/magA };
+      html += vecItem('Â (unit vector)', `(${fmt(ua.x,5)}î, ${fmt(ua.y,5)}ĵ, ${fmt(ua.z,5)}k̂)`, 'var(--success)');
+    }
+  }
+
+  res.innerHTML = html || '<div class="empty-state"><div>No result</div></div>';
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  onMethodChange();
+  // Pre-build matrix
+  createMatrixInput();
+  // Fill default 3×3 demo matrix
+  const defaults = [[2,-1,0],[-1,2,-1],[0,-1,2]];
+  const sz = 3;
+  for (let i = 0; i < sz; i++)
+    for (let j = 0; j < sz; j++)
+      matInputs[i*sz+j].value = defaults[i][j];
+  switchTool(0);
+});
+</script>
+</body>
+</html>
